@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Guild {
+  id          String         @id
+  name        String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  settings    GuildSettings?
+  profiles    Profile[]
+  customCommands CustomCommand[]
+  auditLogs   AuditLog[]
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  guildId     String
+  name        String
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  guild       Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  overlayState OverlayState?
+
+  @@unique([guildId, name])
+}
+
+model OverlayState {
+  id          String   @id @default(cuid())
+  profileId   String   @unique
+  wins        Int      @default(0)
+  losses      Int      @default(0)
+  draws       Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model CustomCommand {
+  id          String   @id @default(cuid())
+  guildId     String
+  name        String
+  response    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  guild       Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, name])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  guildId     String
+  action      String
+  actorId     String?
+  payload     Json?
+  createdAt   DateTime @default(now())
+
+  guild       Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+}
+
+model GuildSettings {
+  id                String   @id @default(cuid())
+  guildId           String   @unique
+  defaultProfileId  String?
+  adminRoleId       String?
+  overlayChannelId  String?
+  winloseChannelId  String?
+  winloseMessageId  String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  guild             Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+}
