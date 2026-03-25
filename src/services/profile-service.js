@@ -43,12 +43,13 @@ async function setActiveProfile(guildId, profileId) {
       data: { isActive: false }
     }),
     prisma.profile.update({
-      where: { id: profileId },
+      where: {
+        id: profileId
+      },
       data: { isActive: true }
     })
   ]);
 }
-
 
 async function getActiveProfile(guildId) {
   return prisma.profile.findFirst({
@@ -62,9 +63,11 @@ async function getActiveProfile(guildId) {
   });
 }
 
-async function deleteProfile(profileId) {
+async function deleteProfile(guildId, profileId) {
   return prisma.profile.delete({
-    where: { id: profileId }
+    where: {
+      id: profileId
+    }
   });
 }
 
@@ -78,13 +81,10 @@ async function cycleActiveProfile(guildId) {
   if (!profiles.length) return null;
 
   const currentIndex = profiles.findIndex(p => p.isActive);
-
-  let nextProfile;
-  if (currentIndex === -1) {
-    nextProfile = profiles[0];
-  } else {
-    nextProfile = profiles[(currentIndex + 1) % profiles.length];
-  }
+  const nextProfile =
+    currentIndex === -1
+      ? profiles[0]
+      : profiles[(currentIndex + 1) % profiles.length];
 
   await prisma.$transaction([
     prisma.profile.updateMany({

@@ -8,26 +8,26 @@ datasource db {
 }
 
 model Guild {
-  id          String         @id
-  name        String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id             String         @id
+  name           String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  settings    GuildSettings?
-  profiles    Profile[]
+  settings       GuildSettings?
+  profiles       Profile[]
   customCommands CustomCommand[]
-  auditLogs   AuditLog[]
+  auditLogs      AuditLog[]
 }
 
 model Profile {
-  id          String   @id @default(cuid())
-  guildId     String
-  name        String
-  isActive    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String       @id @default(cuid())
+  guildId      String
+  name         String
+  isActive     Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  guild       Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  guild        Guild        @relation(fields: [guildId], references: [id], onDelete: Cascade)
   overlayState OverlayState?
 
   @@unique([guildId, name])

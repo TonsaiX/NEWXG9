@@ -16,19 +16,12 @@ async function main() {
 
   const rest = new REST({ version: "10" }).setToken(env.discordToken);
 
-  if (env.guildId) {
-    await rest.put(
-      Routes.applicationGuildCommands(env.clientId, env.guildId),
-      { body }
-    );
-    console.log("Guild commands registered");
-  } else {
-    await rest.put(
-      Routes.applicationCommands(env.clientId),
-      { body }
-    );
-    console.log("Global commands registered");
-  }
+  await rest.put(
+    Routes.applicationCommands(env.clientId),
+    { body }
+  );
+
+  console.log("Global commands registered");
 }
 
 main().catch(console.error);
