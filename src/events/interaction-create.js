@@ -1,3 +1,5 @@
+const { routeComponent } = require("../core/component-router");
+
 module.exports = {
   name: "interactionCreate",
   async execute(interaction, client, app) {

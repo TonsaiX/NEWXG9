@@ -23,8 +23,7 @@ async function reset(profileId) {
     where: { profileId },
     data: {
       wins: 0,
-      losses: 0,
-      draws: 0
+      losses: 0
     }
   });
 }
