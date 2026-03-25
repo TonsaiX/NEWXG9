@@ -37,15 +37,24 @@ async function listProfiles(guildId) {
 }
 
 async function setActiveProfile(guildId, profileId) {
+  const profile = await prisma.profile.findFirst({
+    where: {
+      id: profileId,
+      guildId
+    }
+  });
+
+  if (!profile) {
+    throw new Error("Profile not found in this guild");
+  }
+
   await prisma.$transaction([
     prisma.profile.updateMany({
       where: { guildId },
       data: { isActive: false }
     }),
     prisma.profile.update({
-      where: {
-        id: profileId
-      },
+      where: { id: profileId },
       data: { isActive: true }
     })
   ]);
