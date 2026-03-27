@@ -27,8 +27,24 @@ async function setWinlosePanel(guildId, channelId, messageId) {
   });
 }
 
+async function setNewstarPanel(guildId, channelId, messageId) {
+  return prisma.guildSettings.upsert({
+    where: { guildId },
+    update: {
+      newstarChannelId: channelId,
+      newstarMessageId: messageId
+    },
+    create: {
+      guildId,
+      newstarChannelId: channelId,
+      newstarMessageId: messageId
+    }
+  });
+}
+
 module.exports = {
   ensureGuildSettings,
   getGuildSettings,
-  setWinlosePanel
+  setWinlosePanel,
+  setNewstarPanel
 };

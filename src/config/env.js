@@ -6,7 +6,8 @@ const env = {
   guildId: process.env.DISCORD_GUILD_ID,
   databaseUrl: process.env.DATABASE_URL,
   port: Number(process.env.PORT || 3000),
-  nodeEnv: process.env.NODE_ENV || "development"
+  nodeEnv: process.env.NODE_ENV || "development",
+  publicBaseUrl: process.env.PUBLIC_BASE_URL
 };
 
 for (const [key, value] of Object.entries(env)) {

@@ -49,6 +49,41 @@ async function startHttpServer(appCtx) {
   app.listen(env.port, () => {
     appCtx.logger.info(`HTTP server running on port ${env.port}`);
   });
-}
+
+  app.get("/newstar/:guildId", async (req, res) => {
+    try {
+      const guildId = req.params.guildId;
+      const state = await appCtx.prisma.newStarState.findUnique({
+        where: { guildId }
+      });
+
+      if (!state) {
+        return res.json({
+          rank: "EPIC V",
+          displayRank: "EPIC V",
+          stars: 0
+        });
+      }
+
+      const displayRank =
+        state.rank === "เทพสงคราม" && state.stars >= 50
+          ? "มหาเทพสงคราม"
+          : state.rank;
+
+      return res.json({
+        rank: state.rank,
+        displayRank,
+        stars: state.stars
+      });
+    } catch (error) {
+      appCtx.logger.error(error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/newstar-ui/:guildId", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "..", "web", "newstar", "index.html"));
+  });
+};
 
 module.exports = { startHttpServer };

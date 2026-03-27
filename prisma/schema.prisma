@@ -17,6 +17,8 @@ model Guild {
   profiles       Profile[]
   customCommands CustomCommand[]
   auditLogs      AuditLog[]
+
+  newStarState NewStarState?
 }
 
 model Profile {
@@ -76,8 +78,21 @@ model GuildSettings {
   overlayChannelId  String?
   winloseChannelId  String?
   winloseMessageId  String?
+  newstarChannelId String?
+  newstarMessageId String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   guild             Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+}
+
+model NewStarState {
+  id         String   @id @default(cuid())
+  guildId    String   @unique
+  rank       String
+  stars      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  guild      Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
 }
