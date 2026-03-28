@@ -6,6 +6,7 @@ const guildSettingsService = require("./services/guild-settings-service");
 const profileService = require("./services/profile-service");
 const permissionService = require("./services/permission-service");
 const auditLogService = require("./services/audit-log-service");
+const adminService = require("./modules/admin/service");
 
 function createApp(client) {
   return {
@@ -17,7 +18,8 @@ function createApp(client) {
       guildSettings: guildSettingsService,
       profiles: profileService,
       permissions: permissionService,
-      auditLogs: auditLogService
+      auditLogs: auditLogService,
+      admin: adminService
     }
   };
 }

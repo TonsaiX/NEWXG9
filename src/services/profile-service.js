@@ -72,7 +72,7 @@ async function getActiveProfile(guildId) {
   });
 }
 
-async function deleteProfile(guildId, profileId) {
+async function deleteProfile(profileId) {
   return prisma.profile.delete({
     where: {
       id: profileId

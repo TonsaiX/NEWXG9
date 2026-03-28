@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { buildWinloseMessage } = require("../winlose/view");
+const { requireManageBot } = require("../../utils/interaction");
 
 module.exports = {
   name: "system",
@@ -31,11 +32,11 @@ module.exports = {
             )
         )
         .addSubcommand(sub =>
-        sub
+          sub
             .setName("delete")
             .setDescription("ลบโปรไฟล์")
             .addStringOption(opt =>
-            opt.setName("name").setDescription("ชื่อโปรไฟล์").setRequired(true)
+              opt.setName("name").setDescription("ชื่อโปรไฟล์").setRequired(true)
             )
         ),
 
@@ -81,13 +82,10 @@ module.exports = {
             return;
           }
 
-          // เปลี่ยน active profile
           await app.services.profiles.setActiveProfile(interaction.guildId, profile.id);
 
-          // โหลด active profile ใหม่
           const activeProfile = await app.services.profiles.getActiveProfile(interaction.guildId);
 
-          // อัปเดต embed เดิมทันที ถ้ามี
           const settings = await app.services.guildSettings.getGuildSettings(interaction.guildId);
 
           if (settings.winloseChannelId && settings.winloseMessageId) {
@@ -103,65 +101,66 @@ module.exports = {
           }
 
           await interaction.reply(`ตั้ง ${activeProfile.name} เป็น active profile แล้ว`);
+          return;
         }
-        
+
         if (sub === "delete") {
-        const name = interaction.options.getString("name");
+          if (!(await requireManageBot(interaction, app, "คุณไม่มีสิทธิ์ลบโปรไฟล์"))) {
+            return;
+          }
 
-        const profiles = await app.services.profiles.listProfiles(interaction.guildId);
-        const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
+          const name = interaction.options.getString("name");
 
-        if (!profile) {
+          const profiles = await app.services.profiles.listProfiles(interaction.guildId);
+          const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
+
+          if (!profile) {
             await interaction.reply({
-            content: `ไม่พบโปรไฟล์ชื่อ ${name}`,
-            ephemeral: true
+              content: `ไม่พบโปรไฟล์ชื่อ ${name}`,
+              ephemeral: true
             });
             return;
-        }
+          }
 
-        // ลบ profile
-        await app.services.profiles.deleteProfile(profile.id);
+          await app.services.profiles.deleteProfile(profile.id);
 
-        // หา profile ใหม่ให้ active (ถ้ามี)
-        const remaining = await app.services.profiles.listProfiles(interaction.guildId);
+          const remaining = await app.services.profiles.listProfiles(interaction.guildId);
 
-        let newActive = null;
+          let newActive = null;
 
-        if (remaining.length > 0) {
+          if (remaining.length > 0) {
             newActive = remaining[0];
             await app.services.profiles.setActiveProfile(interaction.guildId, newActive.id);
-        }
+          }
 
-        // อัปเดต winlose panel
-        const settings = await app.services.guildSettings.getGuildSettings(interaction.guildId);
+          const settings = await app.services.guildSettings.getGuildSettings(interaction.guildId);
 
-        if (settings.winloseChannelId && settings.winloseMessageId) {
+          if (settings.winloseChannelId && settings.winloseMessageId) {
             try {
-            const channel = await interaction.guild.channels.fetch(settings.winloseChannelId);
-            const message = await channel.messages.fetch(settings.winloseMessageId);
+              const channel = await interaction.guild.channels.fetch(settings.winloseChannelId);
+              const message = await channel.messages.fetch(settings.winloseMessageId);
 
-            const { buildWinloseMessage } = require("../winlose/view");
-
-            if (newActive) {
+              if (newActive) {
                 const refreshed = await app.services.profiles.getActiveProfile(interaction.guildId);
                 await message.edit(buildWinloseMessage(refreshed));
-            } else {
+              } else {
                 await message.edit({
-                content: "ไม่มีโปรไฟล์แล้ว",
-                embeds: [],
-                components: []
+                  content: "ไม่มีโปรไฟล์แล้ว",
+                  embeds: [],
+                  components: []
                 });
-            }
+              }
             } catch (err) {
-            app.logger.warn("Failed to update panel after delete");
+              app.logger.warn("Failed to update panel after delete");
+              app.logger.warn(err);
             }
-        }
+          }
 
-        await interaction.reply(
+          await interaction.reply(
             newActive
-            ? `ลบ ${profile.name} แล้ว → เปลี่ยนเป็น ${newActive.name}`
-            : `ลบ ${profile.name} แล้ว (ไม่มีโปรไฟล์เหลือ)`
-        );
+              ? `ลบ ${profile.name} แล้ว → เปลี่ยนเป็น ${newActive.name}`
+              : `ลบ ${profile.name} แล้ว (ไม่มีโปรไฟล์เหลือ)`
+          );
         }
       }
     }

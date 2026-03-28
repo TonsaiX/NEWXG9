@@ -2,10 +2,11 @@ const {
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonStyle
+  ButtonStyle,
+  StringSelectMenuBuilder
 } = require("discord.js");
 
-function buildWinloseMessage(profile) {
+function buildWinloseMessage(profile, template = "compact") {
   const wins = profile?.overlayState?.wins ?? 0;
   const losses = profile?.overlayState?.losses ?? 0;
   const profileName = profile?.name ?? "NO ACTIVE PROFILE";
@@ -23,7 +24,8 @@ function buildWinloseMessage(profile) {
         ``,
         `**🏆 WIN**  \`${wins}\``,
         `**💀 LOSE** \`${losses}\``,
-        `**📊 RATE** \`${winRate}%\``
+        `**📊 RATE** \`${winRate}%\``,
+        `**🎨 TEMPLATE** \`${template.toUpperCase()}\``
       ].join("\n")
     )
     .setFooter({
@@ -62,7 +64,12 @@ function buildWinloseMessage(profile) {
     new ButtonBuilder()
       .setCustomId("wl_reset")
       .setLabel("Reset")
-      .setStyle(ButtonStyle.Secondary)
+      .setStyle(ButtonStyle.Secondary),
+
+    new ButtonBuilder()
+      .setCustomId("wl_show_template_menu")
+      .setLabel("เปลี่ยน Template")
+      .setStyle(ButtonStyle.Primary)
   );
 
   return {
@@ -71,4 +78,47 @@ function buildWinloseMessage(profile) {
   };
 }
 
-module.exports = { buildWinloseMessage };
+function buildWinloseTemplateMenu(currentTemplate = "compact") {
+  return {
+    content: `เลือก template ปัจจุบัน: **${currentTemplate}**`,
+    ephemeral: true,
+    components: [
+      new ActionRowBuilder().addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId("wl_select_template")
+          .setPlaceholder("เลือก template win/lose")
+          .addOptions(
+            {
+              label: "Compact",
+              value: "compact",
+              description: "กล่องเล็กแนวตั้ง เหมาะแปะข้างจอ",
+              default: currentTemplate === "compact"
+            },
+            {
+              label: "Scorebar",
+              value: "scorebar",
+              description: "แถบแนวนอน เหมาะวางบนหรือล่างจอ",
+              default: currentTemplate === "scorebar"
+            },
+            {
+              label: "Duel",
+              value: "duel",
+              description: "ซ้ายชนะ ขวาแพ้ กลางเป็นอัตราชนะ",
+              default: currentTemplate === "duel"
+            },
+            {
+              label: "Clean",
+              value: "clean",
+              description: "เรียบ โล้น อ่านง่ายสุด",
+              default: currentTemplate === "clean"
+            }
+          )
+      )
+    ]
+  };
+}
+
+module.exports = {
+  buildWinloseMessage,
+  buildWinloseTemplateMenu
+};

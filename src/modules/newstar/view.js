@@ -2,7 +2,8 @@ const {
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonStyle
+  ButtonStyle,
+  StringSelectMenuBuilder
 } = require("discord.js");
 const { getDisplayRank } = require("./service");
 
@@ -16,7 +17,7 @@ function renderStars(rank, stars) {
   return `${filled}${empty} (${stars}/5)`;
 }
 
-function buildNewStarMessage(state) {
+function buildNewStarMessage(state, template = "compact") {
   const rankLabel = getDisplayRank(state);
   const starsLabel = renderStars(state.rank, state.stars);
 
@@ -28,7 +29,8 @@ function buildNewStarMessage(state) {
         `> **RANK**`,
         `> \`${rankLabel}\``,
         ``,
-        `**STAR** ${starsLabel}`
+        `**STAR** ${starsLabel}`,
+        `**🎨 TEMPLATE** \`${template.toUpperCase()}\``
       ].join("\n")
     )
     .setFooter({ text: "Live rank star panel" })
@@ -42,7 +44,11 @@ function buildNewStarMessage(state) {
     new ButtonBuilder()
       .setCustomId("ns_sub_star")
       .setLabel("- Star")
-      .setStyle(ButtonStyle.Secondary)
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId("ns_show_template_menu")
+      .setLabel("เปลี่ยน Template")
+      .setStyle(ButtonStyle.Primary)
   );
 
   return {
@@ -51,4 +57,47 @@ function buildNewStarMessage(state) {
   };
 }
 
-module.exports = { buildNewStarMessage };
+function buildNewstarTemplateMenu(currentTemplate = "compact") {
+  return {
+    content: `เลือก template ปัจจุบัน: **${currentTemplate}**`,
+    ephemeral: true,
+    components: [
+      new ActionRowBuilder().addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId("ns_select_template")
+          .setPlaceholder("เลือก template newstar")
+          .addOptions(
+            {
+              label: "Compact",
+              value: "compact",
+              description: "กล่องเล็กแนวตั้ง เหมาะแปะข้างจอ",
+              default: currentTemplate === "compact"
+            },
+            {
+              label: "Banner",
+              value: "banner",
+              description: "แถบแนวนอน โชว์ rank และดาวเด่น",
+              default: currentTemplate === "banner"
+            },
+            {
+              label: "Orb",
+              value: "orb",
+              description: "วงแหวนกลาง สไตล์พรีเมียมสตรีม",
+              default: currentTemplate === "orb"
+            },
+            {
+              label: "Clean",
+              value: "clean",
+              description: "เรียบ โล้น อ่านง่ายสุด",
+              default: currentTemplate === "clean"
+            }
+          )
+      )
+    ]
+  };
+}
+
+module.exports = {
+  buildNewStarMessage,
+  buildNewstarTemplateMenu
+};

@@ -80,6 +80,8 @@ model GuildSettings {
   winloseMessageId  String?
   newstarChannelId String?
   newstarMessageId String?
+  winloseTemplate String? @default("clean")
+  newstarTemplate String? @default("clean")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

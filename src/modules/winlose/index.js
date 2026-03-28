@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
 const service = require("./service");
-const { buildWinloseMessage } = require("./view");
+const { buildWinloseMessage, buildWinloseTemplateMenu } = require("./view");
+const { requireManageBot } = require("../../utils/interaction");
 
 module.exports = {
   name: "winlose",
@@ -45,6 +46,10 @@ module.exports = {
         }
 
         if (sub === "setup") {
+          if (!(await requireManageBot(interaction, app, "คุณไม่มีสิทธิ์สร้างหรือแก้ไข win/lose panel"))) {
+            return;
+          }
+
           const activeProfile = await app.services.profiles.getActiveProfile(interaction.guildId);
 
           if (!activeProfile) {
@@ -56,7 +61,10 @@ module.exports = {
           }
 
           const settings = await app.services.guildSettings.getGuildSettings(interaction.guildId);
-          const payload = buildWinloseMessage(activeProfile);
+          const payload = buildWinloseMessage(
+            activeProfile,
+            settings.winloseTemplate || "compact"
+          );
 
           let existingMessage = null;
 
@@ -107,7 +115,9 @@ module.exports = {
 
         await service.incrementWin(activeProfile.id);
         const refreshed = await app.services.profiles.getActiveProfile(interaction.guildId);
-        await interaction.update(buildWinloseMessage(refreshed));
+        const settings = await app.services.guildSettings.getGuildSettings(interaction.guildId);
+
+        await interaction.update(buildWinloseMessage(refreshed, settings.winloseTemplate || "compact"));
       }
     },
     {
@@ -121,12 +131,18 @@ module.exports = {
 
         await service.incrementLoss(activeProfile.id);
         const refreshed = await app.services.profiles.getActiveProfile(interaction.guildId);
-        await interaction.update(buildWinloseMessage(refreshed));
+        const settings = await app.services.guildSettings.getGuildSettings(interaction.guildId);
+
+        await interaction.update(buildWinloseMessage(refreshed, settings.winloseTemplate || "compact"));
       }
     },
     {
       id: "wl_reset",
       async execute(interaction, app) {
+        if (!(await requireManageBot(interaction, app, "คุณไม่มีสิทธิ์รีเซ็ตข้อมูล"))) {
+          return;
+        }
+
         const activeProfile = await app.services.profiles.getActiveProfile(interaction.guildId);
         if (!activeProfile) {
           await interaction.reply({ content: "ยังไม่มี active profile", ephemeral: true });
@@ -135,56 +151,107 @@ module.exports = {
 
         await service.reset(activeProfile.id);
         const refreshed = await app.services.profiles.getActiveProfile(interaction.guildId);
-        await interaction.update(buildWinloseMessage(refreshed));
+        const settings = await app.services.guildSettings.getGuildSettings(interaction.guildId);
+
+        await interaction.update(buildWinloseMessage(refreshed, settings.winloseTemplate || "compact"));
       }
     },
     {
-    id: "wl_sub_win",
-    async execute(interaction, app) {
+      id: "wl_sub_win",
+      async execute(interaction, app) {
         const activeProfile = await app.services.profiles.getActiveProfile(interaction.guildId);
 
         if (!activeProfile) {
-        await interaction.reply({ content: "ยังไม่มี active profile", ephemeral: true });
-        return;
+          await interaction.reply({ content: "ยังไม่มี active profile", ephemeral: true });
+          return;
         }
 
         await service.decrementWin(activeProfile.id);
         const refreshed = await app.services.profiles.getActiveProfile(interaction.guildId);
+        const settings = await app.services.guildSettings.getGuildSettings(interaction.guildId);
 
-        await interaction.update(buildWinloseMessage(refreshed));
-    }
+        await interaction.update(buildWinloseMessage(refreshed, settings.winloseTemplate || "compact"));
+      }
     },
     {
-    id: "wl_sub_loss",
-    async execute(interaction, app) {
+      id: "wl_sub_loss",
+      async execute(interaction, app) {
         const activeProfile = await app.services.profiles.getActiveProfile(interaction.guildId);
 
         if (!activeProfile) {
-        await interaction.reply({ content: "ยังไม่มี active profile", ephemeral: true });
-        return;
+          await interaction.reply({ content: "ยังไม่มี active profile", ephemeral: true });
+          return;
         }
 
         await service.decrementLoss(activeProfile.id);
         const refreshed = await app.services.profiles.getActiveProfile(interaction.guildId);
+        const settings = await app.services.guildSettings.getGuildSettings(interaction.guildId);
 
-        await interaction.update(buildWinloseMessage(refreshed));
-    }
+        await interaction.update(buildWinloseMessage(refreshed, settings.winloseTemplate || "compact"));
+      }
     },
     {
-    id: "wl_cycle_profile",
-    async execute(interaction, app) {
+      id: "wl_cycle_profile",
+      async execute(interaction, app) {
         const nextProfile = await app.services.profiles.cycleActiveProfile(interaction.guildId);
 
         if (!nextProfile) {
-        await interaction.reply({
+          await interaction.reply({
             content: "ยังไม่มีโปรไฟล์ให้สลับ",
             ephemeral: true
-        });
-        return;
+          });
+          return;
         }
 
-        await interaction.update(buildWinloseMessage(nextProfile));
-    }
+        const settings = await app.services.guildSettings.getGuildSettings(interaction.guildId);
+        await interaction.update(buildWinloseMessage(nextProfile, settings.winloseTemplate || "compact"));
+      }
+    },
+    {
+      id: "wl_show_template_menu",
+      async execute(interaction, app) {
+        if (!(await requireManageBot(interaction, app, "คุณไม่มีสิทธิ์เปลี่ยน template"))) {
+          return;
+        }
+
+        const currentTemplate = await app.services.guildSettings.getWinloseTemplate(interaction.guildId);
+        await interaction.reply(buildWinloseTemplateMenu(currentTemplate));
+      }
+    },
+    {
+      id: "wl_select_template",
+      async execute(interaction, app) {
+        if (!(await requireManageBot(interaction, app, "คุณไม่มีสิทธิ์เปลี่ยน template"))) {
+          return;
+        }
+
+        const selected = interaction.values?.[0] || "compact";
+        const settings = await app.services.guildSettings.setWinloseTemplate(
+          interaction.guildId,
+          selected
+        );
+
+        const activeProfile = await app.services.profiles.getActiveProfile(interaction.guildId);
+
+        if (settings.winloseChannelId && settings.winloseMessageId) {
+          try {
+            const channel = await interaction.guild.channels.fetch(settings.winloseChannelId);
+            const message = await channel.messages.fetch(settings.winloseMessageId);
+
+            await message.edit(
+              buildWinloseMessage(activeProfile, settings.winloseTemplate || "compact")
+            );
+          } catch (error) {
+            app.logger.warn("Could not update winlose panel after template change");
+            app.logger.warn(error);
+          }
+        }
+
+        await interaction.update({
+          content: `เปลี่ยน template win/lose เป็น **${settings.winloseTemplate}** แล้ว`,
+          components: []
+        });
+      }
     }
   ],
 

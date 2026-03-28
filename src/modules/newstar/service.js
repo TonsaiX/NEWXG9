@@ -142,7 +142,7 @@ async function incrementStar(guild) {
     where: { guildId: guild.id },
     data: {
       rank: nextRank,
-      stars: nextRank === "เทพสงคราม" ? 0 : 1
+      stars: nextRank === "เทพสงคราม" ? 1 : 1
     }
   });
 }
