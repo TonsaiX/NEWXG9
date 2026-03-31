@@ -47,6 +47,11 @@ module.exports = {
             .addRoleOption(opt => opt.setName("role3").setDescription("Role 3").setRequired(false))
             .addRoleOption(opt => opt.setName("role4").setDescription("Role 4").setRequired(false))
             .addRoleOption(opt => opt.setName("role5").setDescription("Role 5").setRequired(false))
+            .addRoleOption(opt => opt.setName("role6").setDescription("Role 6").setRequired(true))
+            .addRoleOption(opt => opt.setName("role7").setDescription("Role 7").setRequired(false))
+            .addRoleOption(opt => opt.setName("role8").setDescription("Role 8").setRequired(false))
+            .addRoleOption(opt => opt.setName("role9").setDescription("Role 9").setRequired(false))
+            .addRoleOption(opt => opt.setName("role10").setDescription("Role 10").setRequired(false))
         )
         .addSubcommand(sub =>
           sub
@@ -67,7 +72,12 @@ module.exports = {
             interaction.options.getRole("role2")?.id,
             interaction.options.getRole("role3")?.id,
             interaction.options.getRole("role4")?.id,
-            interaction.options.getRole("role5")?.id
+            interaction.options.getRole("role5")?.id,
+            interaction.options.getRole("role6")?.id,
+            interaction.options.getRole("role7")?.id,
+            interaction.options.getRole("role8")?.id,
+            interaction.options.getRole("role9")?.id,
+            interaction.options.getRole("role10")?.id
           ].filter(Boolean);
 
           const settings = await app.services.guildSettings.setVerifyRoles(

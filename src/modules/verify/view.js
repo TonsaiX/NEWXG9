@@ -15,11 +15,23 @@ function buildVerifyPanel(settings, roleIds) {
     .setTitle("✅ VERIFY SYSTEM")
     .setDescription(
       [
-        "กดปุ่มด้านล่างเพื่อยืนยันตัวตน",
+        "╭───────────────╮",
+        "   🔐 **VERIFY SYSTEM**",
+        "╰───────────────╯",
         "",
-        `**เกณฑ์อายุบัญชี:** \`${settings.verifyMinAccountAgeDays} วัน\``,
-        `**Role ที่จะได้รับ:** ${roleText}`,
-        `**ช่องทีมงาน:** ${settings.verifyStaffChannelId ? `<#${settings.verifyStaffChannelId}>` : "ช่องปัจจุบัน"}`
+        "✨ กดปุ่มด้านล่างเพื่อยืนยันตัวตนของคุณ",
+        "",
+        "┌────────────────────┐",
+        `│ 📅 อายุบัญชีขั้นต่ำ: **${settings.verifyMinAccountAgeDays} วัน**`,
+        "│ ⚡ ระบบตรวจสอบอัตโนมัติ",
+        "│ 🛡️ ป้องกันบัญชีใหม่ / บัญชีเสี่ยง",
+        "└────────────────────┘",
+        "",
+        "📌 **เงื่อนไข:**",
+        "• บัญชีเก่าพอ → ได้รับยศทันที",
+        "• บัญชีใหม่ → ส่งให้ทีมงานตรวจสอบ",
+        "",
+        "🎯 กดปุ่มด้านล่างเพื่อเริ่ม Verify"
       ].join("\n")
     )
     .setFooter({ text: "กดปุ่ม Verify เพื่อเริ่มตรวจสอบ" })
