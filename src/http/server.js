@@ -35,9 +35,7 @@ async function startHttpServer(appCtx) {
       });
     } catch (error) {
       appCtx.logger.error(error);
-      return res.status(500).json({
-        error: "Internal server error"
-      });
+      return res.status(500).json({ error: "Internal server error" });
     }
   });
 
@@ -81,6 +79,24 @@ async function startHttpServer(appCtx) {
 
   app.get("/newstar-ui/:guildId", (_req, res) => {
     res.sendFile(path.join(__dirname, "..", "..", "web", "newstar", "index.html"));
+  });
+
+  app.get("/title/:guildId", async (req, res) => {
+    try {
+      const settings = await appCtx.services.guildSettings.getGuildSettings(req.params.guildId);
+
+      return res.json({
+        text: settings.titleText || "NEWXG9 STREAM",
+        direction: settings.titleDirection || "right-to-left"
+      });
+    } catch (error) {
+      appCtx.logger.error(error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/title-ui/:guildId", (_req, res) => {
+    res.sendFile(path.join(__dirname, "..", "..", "web", "title", "index.html"));
   });
 
   app.listen(env.port, () => {

@@ -17,8 +17,8 @@ model Guild {
   profiles       Profile[]
   customCommands CustomCommand[]
   auditLogs      AuditLog[]
-
-  newStarState NewStarState?
+  newStarState   NewStarState?
+  verifyRequests VerifyRequest[]
 }
 
 model Profile {
@@ -71,21 +71,32 @@ model AuditLog {
 }
 
 model GuildSettings {
-  id                String   @id @default(cuid())
-  guildId           String   @unique
-  defaultProfileId  String?
-  adminRoleId       String?
-  overlayChannelId  String?
-  winloseChannelId  String?
-  winloseMessageId  String?
-  newstarChannelId String?
-  newstarMessageId String?
-  winloseTemplate String? @default("clean")
-  newstarTemplate String? @default("clean")
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                      String   @id @default(cuid())
+  guildId                 String   @unique
+  defaultProfileId        String?
+  adminRoleId             String?
+  overlayChannelId        String?
+  winloseChannelId        String?
+  winloseMessageId        String?
+  winloseTemplate         String   @default("compact")
+  newstarChannelId        String?
+  newstarMessageId        String?
+  newstarTemplate         String   @default("compact")
+  verifyChannelId         String?
+  verifyMessageId         String?
+  verifyStaffChannelId    String?
+  verifyRoleIds           Json?
+  verifyMinAccountAgeDays Int      @default(30)
 
-  guild             Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  titleChannelId          String?
+  titleMessageId          String?
+  titleText               String?  @default("NEWXG9 STREAM")
+  titleDirection          String   @default("right-to-left")
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  guild                   Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
 }
 
 model NewStarState {
@@ -97,4 +108,23 @@ model NewStarState {
   updatedAt  DateTime @updatedAt
 
   guild      Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+}
+
+model VerifyRequest {
+  id               String   @id @default(cuid())
+  guildId          String
+  userId           String
+  status           String   @default("PENDING")
+  accountCreatedAt DateTime
+  accountAgeDays   Int
+  requestedAt      DateTime @default(now())
+  reviewedAt       DateTime?
+  reviewerId       String?
+  staffMessageId   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  guild            Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, userId, status])
 }
